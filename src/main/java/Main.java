@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,8 @@ public class Main {
 	private static UI ui;
 	// Takes care of getting data from Firebase
 	private static FirebaseHelper firebase;
+	//UI for building graphs
+	static Graph graph;
 
 	public static void main(String[] args) {
 		turnOffLoggers();
@@ -44,8 +47,8 @@ public class Main {
 		connectToFirebase();
 		firebase.startStream();
 		firebase.getLogs();
-		while (true)
-			;
+		graph = new Graph("Name");
+		while (true);
 	}
 
 	private static void createUI() {
@@ -144,11 +147,22 @@ public class Main {
 			@Override
 			public void getLogData(ArrayList<LogItem> logs) {
 				System.out.println("Received this many logItems:" + logs.size());
-				/*
-				 * for (LogItem item: logs) { //Loop through log items }
-				 */
+				List<LogItem> partOfData = logs.subList(logs.size() - 100, logs.size());
+				System.out.println("Printing par of data");
+				for (LogItem item: partOfData) {
+					System.out.println(item.getTime());
+				}
+				graph.drawLogItemTest(logs);
+				graph.pack( );                
+				graph.setVisible(true); 
 			}
 		};
+	}
+	
+	private void drawSomeData() {
+		graph.createEmptyChart();
+		graph.pack( );                
+		graph.setVisible(true); 
 	}
 
 	private static void turnOffLoggers() {
