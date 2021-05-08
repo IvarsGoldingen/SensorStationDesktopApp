@@ -4,7 +4,7 @@ public class LogItem {
 	private int CO2 = NO_DATA_PROVIDED;
 	private double Humidity = NO_DATA_PROVIDED;
 	private int TVOC = NO_DATA_PROVIDED;
-	private double Temperature = NO_DATA_PROVIDED;
+	private double temperature = NO_DATA_PROVIDED;
 	long Time = NO_DATA_PROVIDED;
 	private double temperature2 = NO_DATA_PROVIDED;
 	private double pressure = NO_DATA_PROVIDED;
@@ -17,7 +17,7 @@ public class LogItem {
 	public LogItem(double humidity, double temperature, int CO2, int TVOC, long Time, double temperature2,
 			double pressure) {
 		this.Humidity = humidity;
-		this.Temperature = temperature;
+		this.temperature = temperature;
 		this.CO2 = CO2;
 		this.TVOC = TVOC;
 		this.Time = Time;
@@ -50,11 +50,11 @@ public class LogItem {
 	}
 
 	public double getTemperature() {
-		return Temperature;
+		return temperature;
 	}
 
 	public void setTemperature(double temperature) {
-		Temperature = temperature;
+		temperature = temperature;
 	}
 
 	public long getTime() {

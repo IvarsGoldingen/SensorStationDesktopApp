@@ -148,9 +148,11 @@ public class Main {
 			public void getLogData(ArrayList<LogItem> logs) {
 				System.out.println("Received this many logItems:" + logs.size());
 				List<LogItem> partOfData = logs.subList(logs.size() - 100, logs.size());
-				System.out.println("Printing par of data");
+				System.out.println("Printing part of data:");
 				for (LogItem item: partOfData) {
-					System.out.println(item.getTime());
+					System.out.print(item.getTime());
+					System.out.print("\tT1:");
+					System.out.println(item.getTemperature());
 				}
 				graph.drawLogItemTest(logs);
 				graph.pack( );                
