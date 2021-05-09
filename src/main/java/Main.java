@@ -160,12 +160,6 @@ public class Main {
 			}
 		};
 	}
-	
-	private void drawSomeData() {
-		graph.createEmptyChart();
-		graph.pack( );                
-		graph.setVisible(true); 
-	}
 
 	private static void turnOffLoggers() {
 		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http", "groovyx.net.http", "io.netty",
