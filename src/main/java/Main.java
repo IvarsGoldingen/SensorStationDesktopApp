@@ -154,7 +154,7 @@ public class Main {
 					System.out.print("\tT1:");
 					System.out.println(item.getTemperature());
 				}
-				graph.drawLogItemTest(logs);
+				graph.drawLogItems(logs);
 				graph.pack( );                
 				graph.setVisible(true); 
 			}
@@ -166,7 +166,7 @@ public class Main {
 				"reactor.netty", "org.springframework", "com.launchdarkly.eventsource.EventSource"));
 		for (String log : loggers) {
 			Logger logger = (Logger) LoggerFactory.getLogger(log);
-			logger.setLevel(Level.INFO);
+			logger.setLevel(Level.ERROR);
 			logger.setAdditive(false);
 		}
 	}
