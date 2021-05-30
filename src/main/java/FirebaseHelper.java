@@ -46,8 +46,8 @@ public class FirebaseHelper {
 		WebClient webClient = WebClient.builder()
 				.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024)).baseUrl(FB_BASE_URL)
 				.build();
-		Mono<String> testString = webClient.get().uri(FB_LOG_DATA).retrieve().bodyToMono(String.class);
-		testString.subscribe(result -> getLogsFromJsonString(result));
+		Mono<String> logString = webClient.get().uri(FB_LOG_DATA).retrieve().bodyToMono(String.class);
+		logString.subscribe(result -> getLogsFromJsonString(result));
 	}
 
 	/*

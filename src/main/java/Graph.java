@@ -45,7 +45,6 @@ public class Graph extends ApplicationFrame implements ChangeListener {
 	private static int SLIDER_INITIAL_VALUE = 100;
 	private JSlider slider;
 	private DateAxis dateAxis;
-	private int lastValue = SLIDER_INITIAL_VALUE;
 	private long latestDateReceivedMs = 0;
 	private long oldestDateReceivedMs = 9223372036854775807L;
 

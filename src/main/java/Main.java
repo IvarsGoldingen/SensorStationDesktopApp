@@ -22,9 +22,8 @@ import ch.qos.logback.classic.Logger;
  * */
 /*
  * TODOs:
- * 4. create graphs from logs
- * 5. sava logs to local database
- * 6. Read data from withings reports
+ * 1. sava logs to local database
+ * 2. Read data from withings reports
  * */
 public class Main {
 
@@ -47,8 +46,7 @@ public class Main {
 		connectToFirebase();
 		firebase.startStream();
 		firebase.getLogs();
-		graph = new Graph("Name");
-		while (true);
+		//
 	}
 
 	private static void createUI() {
@@ -147,16 +145,8 @@ public class Main {
 			@Override
 			public void getLogData(ArrayList<LogItem> logs) {
 				System.out.println("Received this many logItems:" + logs.size());
-				List<LogItem> partOfData = logs.subList(logs.size() - 100, logs.size());
-				System.out.println("Printing part of data:");
-				for (LogItem item: partOfData) {
-					System.out.print(item.getTime());
-					System.out.print("\tT1:");
-					System.out.println(item.getTemperature());
-				}
-				graph.drawLogItems(logs);
-				graph.pack( );                
-				graph.setVisible(true); 
+				//createLogItemGraphs(logs);
+				DataHelper.getAveragePerDay(logs);
 			}
 		};
 	}
@@ -169,5 +159,12 @@ public class Main {
 			logger.setLevel(Level.ERROR);
 			logger.setAdditive(false);
 		}
+	}
+	
+	private static void createLogItemGraphs(ArrayList<LogItem> logs) {
+		graph = new Graph("Name");
+		graph.drawLogItems(logs);
+		graph.pack( );                
+		graph.setVisible(true); 
 	}
 }
