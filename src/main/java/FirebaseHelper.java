@@ -64,8 +64,12 @@ public class FirebaseHelper {
 		ArrayList<LogItem> logs = new ArrayList<LogItem>();
 		// Loop through all the inner JSON objects and retreive LogItems
 		for (String key : objectKeys) {
-			LogItem logItem = gson.fromJson(parentJsonObject.get(key), LogItem.class);
-			logs.add(logItem);
+			try {
+				LogItem logItem = gson.fromJson(parentJsonObject.get(key), LogItem.class);
+				logs.add(logItem);
+			} catch(Exception e) {
+				System.out.println("ERROR in data from FB: " + e);
+			}
 		}
 		// Return data to main
 		streamCallback.getLogData(logs);

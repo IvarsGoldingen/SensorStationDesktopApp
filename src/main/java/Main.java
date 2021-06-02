@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.JOptionPane;
+
 import org.slf4j.LoggerFactory;
 
 import com.launchdarkly.eventsource.EventHandler;
@@ -145,7 +147,8 @@ public class Main {
 			@Override
 			public void getLogData(ArrayList<LogItem> logs) {
 				System.out.println("Received this many logItems:" + logs.size());
-				//createLogItemGraphs(logs);
+				createLogItemGraphs(logs);
+				JOptionPane.showMessageDialog(null, "Drawing logs");
 				DataHelper.getAveragePerDay(logs);
 			}
 		};
