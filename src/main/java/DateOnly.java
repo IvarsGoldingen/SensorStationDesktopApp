@@ -34,6 +34,10 @@ public class DateOnly {
 		this.year = year;
 	}
 	
-	
-	
+	public String toString() {
+		String formattedYear = String.format("%02d", year);
+		String formattedMonth = String.format("%02d", month);
+		String formattedDay = String.format("%02d", day);
+		return formattedYear + "." + formattedMonth + "." + formattedDay;
+	}
 }

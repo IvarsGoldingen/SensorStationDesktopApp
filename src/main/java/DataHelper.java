@@ -50,8 +50,6 @@ public class DataHelper {
 					//this item is still from current day
 					currentDayList.add(item);
 				} else {
-					System.out.print("New day start: ");
-					printOutDate(newItemTime);
 					//The date of the new item is different
 					//Check that the amount of items counted is correct and calculate average
 					int numberOfItemsInCalculatedDay = currentDayList.size();
@@ -60,13 +58,10 @@ public class DataHelper {
 					} else if (numberOfItemsInCalculatedDay < MIN_NUMBER_OF_MEASUREMENTS) {
 						System.out.println("ERROR: the items counted for the day is less than acceptable: " + numberOfItemsInCalculatedDay);
 					} else {
-						
-//						double sum = 0.0;
-//						for (Double value: currentDayList) {
-//							sum += value;
-//						}
-//						double averagePerCurrentDay = sum/numberOfItemsInCalculatedDay;
-//						System.out.println("Average per day calculated: " + averagePerCurrentDay + "From toal of " + numberOfItemsInCalculatedDay + " items");
+						DailyAveragesItem daysAverages = DailyAveragesItem.getAveragesForDay(currentDayList);
+						//System.out.println("Average per day calculated: " + daysAverages.getTemperature() + "From toal of " + daysAverages.getNumberOfItems() + " items");
+						System.out.println(daysAverages.toString());
+						System.out.println();
 					}
 					previouseDayItemTime = (Calendar) newItemTime.clone();
 					currentDayList.clear();
@@ -77,10 +72,6 @@ public class DataHelper {
 			}
 		}
 		System.out.println("Exiting average calculation");
-	}
-	
-	private static void getAveragesObject() {
-		
 	}
 	
 	
