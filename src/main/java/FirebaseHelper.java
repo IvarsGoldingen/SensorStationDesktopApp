@@ -20,7 +20,7 @@ public class FirebaseHelper {
 	private static final String FB_RT_DATA = "/SensorStation.json";
 	private static final String FB_LOG_DATA = "/Log.json";
 
-	CurrentDataCallback streamCallback;
+	private CurrentDataCallback streamCallback;
 
 	public FirebaseHelper(CurrentDataCallback callback) {
 		streamCallback = callback;

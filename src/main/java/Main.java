@@ -30,6 +30,7 @@ import ch.qos.logback.classic.Logger;
 public class Main {
 
 	private static CurrentDataCallback fireBaseCallbacks;
+	private static UICallbacks btnsCallback;
 	// Current sensor data
 	private static SensorStation currentData;
 	// UI class
@@ -38,6 +39,8 @@ public class Main {
 	private static FirebaseHelper firebase;
 	//UI for building graphs
 	static Graph graph;
+	//List of log data
+	private static ArrayList<LogItem> logs = null;
 
 	public static void main(String[] args) {
 		turnOffLoggers();
@@ -52,7 +55,8 @@ public class Main {
 	}
 
 	private static void createUI() {
-		ui = new UI();
+		createUICallbacks();
+		ui = new UI(btnsCallback);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -69,11 +73,32 @@ public class Main {
 		createFirebaseCallbacks();
 		firebase = new FirebaseHelper(fireBaseCallbacks);
 	}
+	
+	private static void createUICallbacks() {
+		btnsCallback = new UICallbacks() {
+
+			@Override
+			public void openRecentGraphsButtonPressed() {
+				// TODO Auto-generated method stub
+				System.out.println("openRecentGraphsButtonPressed()");
+				if (logs != null) {
+					createLogItemGraphs(logs);
+				} else {
+					JOptionPane.showMessageDialog(null, "Logs are not yet downloaded");
+				}
+			}
+
+			@Override
+			public void openAveragesGraphsButtonPressed() {
+				// TODO Auto-generated method stub
+				System.out.println("openAveragesGraphsButtonPressed()");
+			}
+		};
+	}
 
 	// Data received from stream will processed here
 	private static void createFirebaseCallbacks() {
 		fireBaseCallbacks = new CurrentDataCallback() {
-
 			// callback from stream with current sensor data
 			@Override
 			public void updateStreamData(int key, int data) {
@@ -91,7 +116,6 @@ public class Main {
 				}
 				ui.updateUI(currentData);
 			}
-
 			// callback from stream with current sensor data
 			@Override
 			public void updateStreamData(int key, double data) {
@@ -145,10 +169,9 @@ public class Main {
 
 			// callback from firebase with log data
 			@Override
-			public void getLogData(ArrayList<LogItem> logs) {
+			public void getLogData(ArrayList<LogItem> fbLogs) {
+				logs = fbLogs;
 				System.out.println("Received this many logItems:" + logs.size());
-				createLogItemGraphs(logs);
-				JOptionPane.showMessageDialog(null, "Drawing logs");
 				DataHelper.getAveragePerDay(logs);
 			}
 		};

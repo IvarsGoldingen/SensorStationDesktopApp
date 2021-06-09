@@ -13,11 +13,14 @@ import javax.swing.JTextField;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
-public class UI {
+public class UI extends JFrame {
 
 	//UI elements
-	private JFrame frame;
+	//private JFrame frame;
 	private  JTextField co2TV;
 	private  JTextField tvocTV;
 	private  JTextField T1tv;
@@ -28,8 +31,11 @@ public class UI {
 	
 	//Format of readings
 	private static DecimalFormat decForm = new DecimalFormat("#.##");
-
-	public UI() {
+	//Callbacks to main
+	private UICallbacks callbackToMain;
+	
+	public UI(UICallbacks callback) {
+		callbackToMain = callback;
 		initialize();
 	}
 	
@@ -55,14 +61,13 @@ public class UI {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frame = new JFrame();
-		frame.setBounds(100, 100, 463, 586);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(null);
+		this.setBounds(100, 100, 464, 721);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.getContentPane().setLayout(null);
 		
 		JPanel panel = new JPanel();
 		panel.setBounds(0, 0, 447, 544);
-		frame.getContentPane().add(panel);
+		this.getContentPane().add(panel);
 		panel.setLayout(new GridLayout(0, 2, 0, 0));
 		
 		JLabel lblNewLabel = new JLabel("CO2");
@@ -148,9 +153,29 @@ public class UI {
 		lastUpdateTV.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		panel.add(lastUpdateTV);
 		lastUpdateTV.setColumns(10);
+		
+		JButton btnNewButton = new JButton("DRAW RECENT GRAPH");
+		btnNewButton.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				callbackToMain.openRecentGraphsButtonPressed();
+			}
+		});
+		btnNewButton.setBounds(71, 554, 295, 59);
+		getContentPane().add(btnNewButton);
+		
+		JButton btnDrawAveragesGraph = new JButton("DRAW AVERAGES GRAPH");
+		btnDrawAveragesGraph.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				callbackToMain.openAveragesGraphsButtonPressed();
+			}
+		});
+		btnDrawAveragesGraph.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btnDrawAveragesGraph.setBounds(71, 623, 295, 59);
+		getContentPane().add(btnDrawAveragesGraph);
 	}
 	
 	public void setJFrameVisible(boolean visible) {
-		frame.setVisible(true);
+		this.setVisible(true);
 	}
 }
