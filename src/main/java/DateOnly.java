@@ -1,4 +1,9 @@
+import java.util.Calendar;
 
+import javax.persistence.Embeddable;
+
+//Needed so data from this object can be saved in a DB table which is created from an object which use this one
+@Embeddable
 public class DateOnly {
 	protected static final int NO_DATA_PROVIDED = -1;
 	private int day = NO_DATA_PROVIDED;
@@ -39,5 +44,11 @@ public class DateOnly {
 		String formattedMonth = String.format("%02d", month);
 		String formattedDay = String.format("%02d", day);
 		return formattedYear + "." + formattedMonth + "." + formattedDay;
+	}
+	
+	public long getEpochMs() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(year, month, day);
+		return calendar.getTimeInMillis();
 	}
 }

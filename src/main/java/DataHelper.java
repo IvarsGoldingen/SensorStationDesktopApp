@@ -19,14 +19,15 @@ public class DataHelper {
 	}
 	
 	//print out averages per day
-	public static void getAveragePerDay(ArrayList <LogItem> list){
+	public static ArrayList<DailyAveragesItem> getAveragePerDay(ArrayList <LogItem> list){
 		System.out.println("getAveragePerDay");
 		Calendar newItemTime = Calendar.getInstance();
 		Calendar previouseDayItemTime = Calendar.getInstance();
 		boolean searchForFirstItem = true;
 		Date currentDayDate = null;
-		//ArrayList<Double> currentDayList = new ArrayList<Double>();
+		ArrayList<DailyAveragesItem> dailysList = new ArrayList<DailyAveragesItem>();
 		ArrayList<LogItem> currentDayList = new ArrayList<LogItem>();
+		DbHelper database = new DbHelper();
 		for (LogItem item: list) {
 			//items come in order starting from oldes to newest
 			//find first item which is after Midnight
@@ -61,7 +62,9 @@ public class DataHelper {
 						DailyAveragesItem daysAverages = DailyAveragesItem.getAveragesForDay(currentDayList);
 						//System.out.println("Average per day calculated: " + daysAverages.getTemperature() + "From toal of " + daysAverages.getNumberOfItems() + " items");
 						System.out.println(daysAverages.toString());
-						System.out.println();
+						dailysList.add(daysAverages);
+						//database.saveItem(daysAverages);
+						System.out.println();					
 					}
 					previouseDayItemTime = (Calendar) newItemTime.clone();
 					currentDayList.clear();
@@ -71,7 +74,9 @@ public class DataHelper {
 				
 			}
 		}
+		database.saveItems(dailysList);
 		System.out.println("Exiting average calculation");
+		return dailysList;
 	}
 	
 	

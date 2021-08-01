@@ -1,4 +1,6 @@
+import javax.persistence.MappedSuperclass;
 
+@MappedSuperclass
 public class SensorData {
 	protected static final int NO_DATA_PROVIDED = -1;
 	protected int CO2 = NO_DATA_PROVIDED;

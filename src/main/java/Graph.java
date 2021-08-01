@@ -32,7 +32,19 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 public class Graph extends ApplicationFrame implements ChangeListener {
-
+	//Legend titles
+	private final static String T1_SERIES_NAME = "T1 [C°]";
+	private final static String T2_SERIES_NAME = "T2 [C°]";
+	private final static String CO2_SERIES_NAME = "CO2 [PPM]";
+	private final static String TVOC_SERIES_NAME = "TVOC [PPB]";
+	private final static String RH_SERIES_NAME = "RH [%]";
+	private final static String PRESSURE_SERIES_NAME = "Pressure [hPa]";
+	
+	//Types of items that can be drawn
+	private static final int ITEM_TYPE_UNKNOWN = -1;
+	private static final int ITEM_TYPE_LOG = 1;
+	private static final int ITEM_TYPE_DAILY_AVG = 2;
+	
 	// one day (milliseconds, seconds, minutes, hours, days)
 	private static final int DAY_MS = 1000 * 60 * 60 * 24 * 1;
 	private static final int HOUR_MS = 1000 * 60 * 60;
@@ -69,31 +81,29 @@ public class Graph extends ApplicationFrame implements ChangeListener {
 	// for toggle buttons to show or hide series on Graph
 	private boolean thousandsSeriesVisible = true;
 	private boolean hudredsSeriesVisible = true;
+	
+	//How many days will be shown when pressing zoom to end
+	private int zoomToEndDays = 2;
+	
 
 	public Graph(String title) {
 		super(title);
 	}
 
-	private final static String T1_SERIES_NAME = "T1 [C°]";
-	private final static String T2_SERIES_NAME = "T2 [C°]";
-	private final static String CO2_SERIES_NAME = "CO2 [PPM]";
-	private final static String TVOC_SERIES_NAME = "TVOC [PPB]";
-	private final static String RH_SERIES_NAME = "RH [%]";
-	private final static String PRESSURE_SERIES_NAME = "Pressure [hPa]";
-
-	public void drawLogItems(List<LogItem> logItems) {
-		createSeries(logItems);
+	public void drawGraph(List <Object> items, SimpleDateFormat dateFormat, int zoomToEndDays){
+		this.zoomToEndDays = zoomToEndDays;
+		createSeries((List <Object>)(List<?>)items);
 		createDatasets();
 		// create plots
 		plot = new XYPlot();
-		// Set datasets tu plot
+		// Set datasets to plot
 		plot.setDataset(HUNDREDS_PLOT_INDEX, hundredsDataset);
 		plot.setDataset(THOUSANDS_PLOT_INDEX, thousandsDataset);
 		// Set white background
 		plot.setBackgroundPaint(Color.WHITE);
 		formatAxis();
 		setYaxisRanges();
-		formatTimeAxis();
+		formatTimeAxis(dateFormat);
 		// Map the data to the appropriate axis
 		plot.mapDatasetToRangeAxis(HUNDREDS_PLOT_INDEX, HUNDREDS_PLOT_INDEX);
 		plot.mapDatasetToRangeAxis(THOUSANDS_PLOT_INDEX, THOUSANDS_PLOT_INDEX);
@@ -119,8 +129,10 @@ public class Graph extends ApplicationFrame implements ChangeListener {
 		pack();
 		setTitle("Sensor station");
 		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
+
+	
 
 	private void createLegendClickListener() {
 		chartPanel.addChartMouseListener(new ChartMouseListener() {
@@ -153,8 +165,66 @@ public class Graph extends ApplicationFrame implements ChangeListener {
 			}
 		});
 	}
+	
+	private void createSeries(List<Object> items) {
+		initSensorDataSeries();
+		Object firstItem = items.get(0);
+		int itemType = ITEM_TYPE_UNKNOWN;
+		if (firstItem instanceof DailyAveragesItem) {
+			itemType = ITEM_TYPE_DAILY_AVG;
+		} else if(firstItem instanceof LogItem) {
+			itemType = ITEM_TYPE_LOG;
+		} else {
+			System.out.println("Error: unknown item");
+		}
+		
+		for (Object item : items) {
+			// Get the last item time so it is known from when to draw the graph
+			long timeOfItem = getItemTime(item, itemType);
+			addSensorSeriesData(item,timeOfItem);
+		}
+	}
+	
+	private void addSensorSeriesData(Object item, long timeOfItem) {
+		SensorData sensorData = (SensorData)item;
+		co2Series.add(timeOfItem, sensorData.getCO2());
+		t1Series.add(timeOfItem, sensorData.getTemperature());
+		t2Series.add(timeOfItem, sensorData.getTemperature2());
+		tvocSeries.add(timeOfItem, sensorData.getTVOC());
+		pressureSeries.add(timeOfItem, sensorData.getPressure());
+		humiditySeries.add(timeOfItem, sensorData.getHumidity());
+	}
+	
+	//Get time from item depening on what typpe of item it is
+	private long getItemTime(Object item, int objectType) {
+		long timeOfItem = 0; 
+		if (objectType == ITEM_TYPE_DAILY_AVG) {
+			DailyAveragesItem castedItem = (DailyAveragesItem)item;
+			DateOnly dateOfItem = castedItem.getDate();
+			timeOfItem = dateOfItem.getEpochMs();
+			if (timeOfItem > latestDateReceivedMs) {
+				latestDateReceivedMs = timeOfItem;
+			}
+			//Oldest item for slider
+			if (timeOfItem < oldestDateReceivedMs) {
+				oldestDateReceivedMs = timeOfItem;
+			}
+		} else if (objectType == ITEM_TYPE_LOG) {
+			LogItem castedItem = (LogItem)item;
+			timeOfItem = castedItem.getTime();
+			if (timeOfItem > latestDateReceivedMs) {
+				latestDateReceivedMs = timeOfItem;
+			}
+			//Oldest item for slider
+			if (timeOfItem < oldestDateReceivedMs) {
+				oldestDateReceivedMs = timeOfItem;
+			}
+		}
+		return timeOfItem;
+	}
 
-	private void createSeries(List<LogItem> logItems) {
+	
+	private void initSensorDataSeries() {
 		// Create a series of neccessary log data
 		co2Series = new XYSeries(CO2_SERIES_NAME);
 		tvocSeries = new XYSeries(TVOC_SERIES_NAME);
@@ -162,22 +232,6 @@ public class Graph extends ApplicationFrame implements ChangeListener {
 		t1Series = new XYSeries(T1_SERIES_NAME);
 		t2Series = new XYSeries(T2_SERIES_NAME);
 		humiditySeries = new XYSeries(RH_SERIES_NAME);
-		for (LogItem item : logItems) {
-			// Get the last item time so it is known from when to draw the graph
-			long timeOfItem = item.getTime();
-			if (timeOfItem > latestDateReceivedMs) {
-				latestDateReceivedMs = timeOfItem;
-			}
-			if (timeOfItem < oldestDateReceivedMs) {
-				oldestDateReceivedMs = timeOfItem;
-			}
-			co2Series.add(timeOfItem, item.getCO2());
-			t1Series.add(timeOfItem, item.getTemperature());
-			t2Series.add(timeOfItem, item.getTemperature2());
-			tvocSeries.add(timeOfItem, item.getTVOC());
-			pressureSeries.add(timeOfItem, item.getPressure());
-			humiditySeries.add(timeOfItem, item.getHumidity());
-		}
 	}
 
 	private void createDatasets() {
@@ -222,19 +276,18 @@ public class Graph extends ApplicationFrame implements ChangeListener {
 		thousandsAxis.setRange(0, 2000);
 	}
 
-	private void formatTimeAxis() {
+	private void formatTimeAxis(SimpleDateFormat dateFormat) {
 		DateAxis dateAxis = new DateAxis("Time");
-		dateAxis.setDateFormatOverride(new SimpleDateFormat("dd.MM HH:mm"));
+		dateAxis.setDateFormatOverride(dateFormat);
 		// Set time axis on X
 		plot.setDomainAxis(dateAxis);
-		// Set ranges on X axis
 		zoomGraphToEnd();
 	}
 
 	private void zoomGraphToEnd() {
 		// Set ranges on X axis
 		dateAxis = (DateAxis) plot.getDomainAxis();
-		long startOfDateAxis = latestDateReceivedMs - (2 * DAY_MS);
+		long startOfDateAxis = latestDateReceivedMs - ((long)zoomToEndDays * (long)DAY_MS);
 		dateAxis.setRange(startOfDateAxis, latestDateReceivedMs);
 	}
 	
@@ -320,4 +373,111 @@ public class Graph extends ApplicationFrame implements ChangeListener {
 		dateAxis.setRange(range);
 	}
 
+	private void createRecentsSeries(List<LogItem> logItems) {
+		initSensorDataSeries();
+		for (LogItem item : logItems) {
+			// Get the last item time so it is known from when to draw the graph
+			long timeOfItem = item.getTime();
+			if (timeOfItem > latestDateReceivedMs) {
+				latestDateReceivedMs = timeOfItem;
+			}
+			//Oldest item for slider
+			if (timeOfItem < oldestDateReceivedMs) {
+				oldestDateReceivedMs = timeOfItem;
+			}
+			co2Series.add(timeOfItem, item.getCO2());
+			t1Series.add(timeOfItem, item.getTemperature());
+			t2Series.add(timeOfItem, item.getTemperature2());
+			tvocSeries.add(timeOfItem, item.getTVOC());
+			pressureSeries.add(timeOfItem, item.getPressure());
+			humiditySeries.add(timeOfItem, item.getHumidity());
+		}
+	}
+	
+	public void drawDailyItems(List<DailyAveragesItem> items)
+	{
+		zoomToEndDays = 14;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM");
+		createSeries((List <Object>)(List<?>)items);
+		createDatasets();
+		// create plots
+		plot = new XYPlot();
+		// Set datasets to plot
+		plot.setDataset(HUNDREDS_PLOT_INDEX, hundredsDataset);
+		plot.setDataset(THOUSANDS_PLOT_INDEX, thousandsDataset);
+		// Set white background
+		plot.setBackgroundPaint(Color.WHITE);
+		formatAxis();
+		setYaxisRanges();
+		formatTimeAxis(dateFormat);
+		// Map the data to the appropriate axis
+		plot.mapDatasetToRangeAxis(HUNDREDS_PLOT_INDEX, HUNDREDS_PLOT_INDEX);
+		plot.mapDatasetToRangeAxis(THOUSANDS_PLOT_INDEX, THOUSANDS_PLOT_INDEX);
+		// create a slider
+		this.slider = new JSlider(0, 100, SLIDER_INITIAL_VALUE);
+		this.slider.addChangeListener(this);
+		// generate the chart
+		chart = new JFreeChart("MyPlot", getFont(), plot, true);
+		chart.setBackgroundPaint(Color.WHITE);
+		chartPanel = new ChartPanel(chart);
+		chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+		chartPanel.setBackground(Color.WHITE);
+		chartPanel.add(this.slider);
+		add(chartPanel);
+		createLegendClickListener();
+		// Create visual controls
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		panel.add(createShowAllThousandsSeriesButton());
+		panel.add(createShowAllHundredsSeriesButton());
+		panel.add(createZoom());// Create zoom button
+		panel.add(createZoomToEnd());
+		add(panel, BorderLayout.SOUTH);
+		pack();
+		setTitle("Sensor station");
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	}
+	public void drawLogItems(List<LogItem> logItems) {
+		zoomToEndDays = 2;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM HH:mm");
+		createSeries((List <Object>)(List<?>)logItems);
+		createDatasets();
+		// create plots
+		plot = new XYPlot();
+		// Set datasets tu plot
+		plot.setDataset(HUNDREDS_PLOT_INDEX, hundredsDataset);
+		plot.setDataset(THOUSANDS_PLOT_INDEX, thousandsDataset);
+		// Set white background
+		plot.setBackgroundPaint(Color.WHITE);
+		formatAxis();
+		setYaxisRanges();
+		formatTimeAxis(dateFormat);
+		// Set ranges on X axis
+		// Map the data to the appropriate axis
+		plot.mapDatasetToRangeAxis(HUNDREDS_PLOT_INDEX, HUNDREDS_PLOT_INDEX);
+		plot.mapDatasetToRangeAxis(THOUSANDS_PLOT_INDEX, THOUSANDS_PLOT_INDEX);
+		// create a slider
+		this.slider = new JSlider(0, 100, SLIDER_INITIAL_VALUE);
+		this.slider.addChangeListener(this);
+		// generate the chart
+		chart = new JFreeChart("MyPlot", getFont(), plot, true);
+		chart.setBackgroundPaint(Color.WHITE);
+		chartPanel = new ChartPanel(chart);
+		chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+		chartPanel.setBackground(Color.WHITE);
+		chartPanel.add(this.slider);
+		add(chartPanel);
+		createLegendClickListener();
+		// Create visual controls
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		panel.add(createShowAllThousandsSeriesButton());
+		panel.add(createShowAllHundredsSeriesButton());
+		panel.add(createZoom());// Create zoom button
+		panel.add(createZoomToEnd());
+		add(panel, BorderLayout.SOUTH);
+		pack();
+		setTitle("Sensor station");
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	}
 }

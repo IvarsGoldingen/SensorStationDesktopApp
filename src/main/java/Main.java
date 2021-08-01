@@ -1,6 +1,7 @@
 import java.awt.EventQueue;
 
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +26,14 @@ import ch.qos.logback.classic.Logger;
 /*
  * TODOs:
  * 1. sava logs to local database
+ * 		read data from local database
+ * 		Save data from main not DataHelper
+ * 		Draw logs from database
  * 2. Read data from withings reports
+ * 3. Have some kind of status log window
+ * 4. Do not exit app when closing graph
+ * 		put your ChartPanel in a JFrame
+ * 		https://stackoverflow.com/questions/5522575/how-can-i-update-a-jfreecharts-appearance-after-its-been-made-visible
  * */
 public class Main {
 
@@ -38,9 +46,11 @@ public class Main {
 	// Takes care of getting data from Firebase
 	private static FirebaseHelper firebase;
 	//UI for building graphs
-	static Graph graph;
+	static Graph graph2;
 	//List of log data
 	private static ArrayList<LogItem> logs = null;
+	//List of daily data
+	private static ArrayList<DailyAveragesItem> dailyLogs = null;
 
 	public static void main(String[] args) {
 		turnOffLoggers();
@@ -92,6 +102,11 @@ public class Main {
 			public void openAveragesGraphsButtonPressed() {
 				// TODO Auto-generated method stub
 				System.out.println("openAveragesGraphsButtonPressed()");
+				if (dailyLogs != null) {
+					createDailyItemGraphs(dailyLogs);
+				} else {
+					JOptionPane.showMessageDialog(null, "Daily logs are not yet downloaded");
+				}
 			}
 		};
 	}
@@ -172,7 +187,7 @@ public class Main {
 			public void getLogData(ArrayList<LogItem> fbLogs) {
 				logs = fbLogs;
 				System.out.println("Received this many logItems:" + logs.size());
-				DataHelper.getAveragePerDay(logs);
+				dailyLogs = DataHelper.getAveragePerDay(logs);
 			}
 		};
 	}
@@ -188,8 +203,19 @@ public class Main {
 	}
 	
 	private static void createLogItemGraphs(ArrayList<LogItem> logs) {
-		graph = new Graph("Name");
-		graph.drawLogItems(logs);
+		Graph graph = new Graph("Recent data");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM HH:mm");
+		graph.drawGraph((List <Object>)(List<?>)logs, dateFormat, 2);
+		//graph.drawLogItems(logs);
+		graph.pack( );                
+		graph.setVisible(true); 
+	}
+	
+	private static void createDailyItemGraphs(ArrayList<DailyAveragesItem> logs) {
+		Graph graph = new Graph("Daily averages data");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM");
+		graph.drawGraph((List <Object>)(List<?>)logs, dateFormat, 14);
+		//graph.drawDailyItems(logs);
 		graph.pack( );                
 		graph.setVisible(true); 
 	}

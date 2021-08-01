@@ -1,18 +1,29 @@
 import java.util.ArrayList;
 import java.util.Calendar;
 
-//Object that contains averages of different data per day
-public class DailyAveragesItem extends SensorData {
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
+//Object that contains averages of different data per day
+@Entity(name="Sensor_station")
+public class DailyAveragesItem extends SensorData {
+	
+	@Id
+	private int daily_item_id = -1;
 	private DateOnly date = null;
 	// Number of items from whhihc the average was calculated
 	private int numberOfItems = 0;
 
+	public DailyAveragesItem() {
+		//Default constructor for Hybernate
+	}
+	
 	public DailyAveragesItem(double humidity, double temperature, int CO2, int TVOC, double temperature2,
 			double pressure, DateOnly date, int numberOfItems) {
 		super(humidity, temperature, CO2, TVOC, temperature2, pressure);
 		this.date = date;
 		this.numberOfItems = numberOfItems;
+		calculateId();
 	}
 
 	// Get averahes item from list of log items
@@ -47,13 +58,12 @@ public class DailyAveragesItem extends SensorData {
 		long timeOfItem = list.get(0).getTime();
 		Calendar calendarTimeOfitem = Calendar.getInstance();
 		calendarTimeOfitem.setTimeInMillis(timeOfItem);
-
+		DateOnly itemDate = new DateOnly(calendarTimeOfitem.get(Calendar.DAY_OF_MONTH), 
+				calendarTimeOfitem.get(Calendar.MONTH) + 1, // January is 0
+				calendarTimeOfitem.get(Calendar.YEAR));
 		return new DailyAveragesItem(humidityAverage, temperatureAverage, (int) co2Average, (int) tvocAverage,
 				temperature2Average, pressureAverage,
-				new DateOnly(calendarTimeOfitem.get(Calendar.DAY_OF_MONTH), calendarTimeOfitem.get(Calendar.MONTH) + 1, // January
-																														// is
-																														// 0
-						calendarTimeOfitem.get(Calendar.YEAR)),
+				itemDate,
 				numerOfItems);
 	}
 
@@ -71,6 +81,24 @@ public class DailyAveragesItem extends SensorData {
 
 	public void setNumberOfItems(int numberOfItems) {
 		this.numberOfItems = numberOfItems;
+	}
+
+	public int getDaily_item_id() {
+		return daily_item_id;
+	}
+
+	public void setDaily_item_id(int daily_item_id) {
+		this.daily_item_id = daily_item_id;
+	}
+	
+	//Calculate ID of current object
+	//Id is the number ade out of the date
+	//If date is 2020.12.30 = 20201230
+	private void calculateId() {
+		this.daily_item_id = 
+				(this.date.getYear() * 10000) +
+				(this.date.getMonth() * 100) + 
+				this.date.getDay();
 	}
 
 	public String toString() {
