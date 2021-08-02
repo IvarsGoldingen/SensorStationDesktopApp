@@ -16,6 +16,8 @@ import javax.swing.SwingConstants;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
 
 public class UI extends JFrame {
 
@@ -28,6 +30,7 @@ public class UI extends JFrame {
 	private JTextField rhTV;
 	private JTextField pressureTv;
 	private JTextField lastUpdateTV;
+	private JTextArea logArea;
 	
 	//Format of readings
 	private static DecimalFormat decForm = new DecimalFormat("#.##");
@@ -37,6 +40,11 @@ public class UI extends JFrame {
 	public UI(UICallbacks callback) {
 		callbackToMain = callback;
 		initialize();
+	}
+	
+	//Write data to log area
+	public void logLine(String text) {
+		logArea.append(text + '\n');
 	}
 	
 	//Update ui with data from database
@@ -61,7 +69,7 @@ public class UI extends JFrame {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		this.setBounds(100, 100, 464, 721);
+		this.setBounds(100, 100, 1035, 721);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.getContentPane().setLayout(null);
 		
@@ -173,6 +181,13 @@ public class UI extends JFrame {
 		btnDrawAveragesGraph.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		btnDrawAveragesGraph.setBounds(71, 623, 295, 59);
 		getContentPane().add(btnDrawAveragesGraph);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(457, 0, 564, 682);
+		getContentPane().add(scrollPane);
+		
+		logArea = new JTextArea();
+		scrollPane.setViewportView(logArea);
 	}
 	
 	public void setJFrameVisible(boolean visible) {

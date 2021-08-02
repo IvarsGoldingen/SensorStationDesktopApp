@@ -29,6 +29,7 @@ import ch.qos.logback.classic.Logger;
  * 		read data from local database
  * 		Save data from main not DataHelper
  * 		Draw logs from database
+ * 2.1 Finish implementing console
  * 2. Read data from withings reports
  * 3. Have some kind of status log window
  * 4. Do not exit app when closing graph
@@ -186,6 +187,7 @@ public class Main {
 			@Override
 			public void getLogData(ArrayList<LogItem> fbLogs) {
 				logs = fbLogs;
+				ui.logLine("Received " + logs.size() + " items from Firebase");
 				System.out.println("Received this many logItems:" + logs.size());
 				dailyLogs = DataHelper.getAveragePerDay(logs);
 			}
