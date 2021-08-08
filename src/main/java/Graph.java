@@ -31,7 +31,7 @@ import org.jfree.data.time.DateRange;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-public class Graph extends ApplicationFrame implements ChangeListener {
+public class Graph extends JFrame implements ChangeListener {
 	//Legend titles
 	private final static String T1_SERIES_NAME = "T1 [C°]";
 	private final static String T2_SERIES_NAME = "T2 [C°]";

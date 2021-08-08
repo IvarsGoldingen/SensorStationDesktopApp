@@ -54,9 +54,15 @@ public class DbHelper {
 	
 	private void init() {
 		Configuration hibernateConf = new Configuration().configure().addAnnotatedClass(DailyAveragesItem.class);
-		SessionFactory sFactory = hibernateConf.buildSessionFactory();
-		session = sFactory.openSession();
-		transaction = session.beginTransaction();
+		try {
+			SessionFactory sFactory = hibernateConf.buildSessionFactory();
+			session = sFactory.openSession();
+			transaction = session.beginTransaction();
+		} catch (Exception e) {
+			
+		}
+		
+		
 	}
 	
 }

@@ -39,6 +39,7 @@ import ch.qos.logback.classic.Logger;
 public class Main {
 
 	private static CurrentDataCallback fireBaseCallbacks;
+	private static UiLogCallback logCallback;
 	private static UICallbacks btnsCallback;
 	// Current sensor data
 	private static SensorStation currentData;
@@ -53,16 +54,18 @@ public class Main {
 	//List of daily data
 	private static ArrayList<DailyAveragesItem> dailyLogs = null;
 
+
 	public static void main(String[] args) {
 		turnOffLoggers();
-		System.out.println("Sensor station start");
+		System.out.println("Sensor station start. Boo Boo is the best");
 		createUI();
+		//Create callbacks for UI logging
+		createUICallbacks();		
 		// This object will be populated with data from the stream
 		currentData = new SensorStation();
 		connectToFirebase();
 		firebase.startStream();
 		firebase.getLogs();
-		//
 	}
 
 	private static void createUI() {
@@ -95,7 +98,7 @@ public class Main {
 				if (logs != null) {
 					createLogItemGraphs(logs);
 				} else {
-					JOptionPane.showMessageDialog(null, "Logs are not yet downloaded");
+					JOptionPane.showMessageDialog(null, "Logs are not yet downloaded. Feed BooBoo ");
 				}
 			}
 
@@ -111,6 +114,8 @@ public class Main {
 			}
 		};
 	}
+	
+	
 
 	// Data received from stream will processed here
 	private static void createFirebaseCallbacks() {
@@ -150,7 +155,7 @@ public class Main {
 					currentData.setHumidity(data);
 					break;
 				default:
-					System.out.println("Stream sent unknown double");
+					System.out.println("Stream sent unknown double. Kiss your Boo!");
 					break;
 				}
 				ui.updateUI(currentData);
@@ -191,6 +196,17 @@ public class Main {
 				System.out.println("Received this many logItems:" + logs.size());
 				dailyLogs = DataHelper.getAveragePerDay(logs);
 			}
+		};
+	}
+	
+	
+	private void createLogCallback() {
+		logCallback = new UiLogCallback() {
+			@Override
+			public void log(String text) {
+				ui.logLine(text);
+			}
+			
 		};
 	}
 
