@@ -108,10 +108,15 @@ public class DailyAveragesItem extends SensorData {
 		String formattedPressure = String.format("%.2f", pressure);
 
 		String itemString = null;
-		itemString = "Averages on " + date.toString() + ":\n" + "T1: " + formattedTemperature + " °C\n" + "T2: "
-				+ formattedTemperature2 + " °C\n" + "RH: " + formattedHumidity + " %\n" + "P: " + formattedPressure
-				+ " hPa\n" + "CO2: " + CO2 + " PPM\n" + "TVOC: " + TVOC + " PPB\n" + "from " + numberOfItems
-				+ " items.";
+		itemString = "Averages on " + date.toString() + ":\n" 
+		+ "T1: " + formattedTemperature + " °C\n" 
+				+ "T2: " + formattedTemperature2 + " °C\n" 
+				+ "RH: " + formattedHumidity + " %\n" 
+				+ "P: " + formattedPressure	+ " hPa\n" 
+				+ "CO2: " + CO2 + " PPM\n"
+				+ "TVOC: " + TVOC + " PPB\n"
+				+ "ID: " + daily_item_id + "\n"
+				+ "from " + numberOfItems + " items.";
 		return itemString;
 	}
 

@@ -19,15 +19,15 @@ public class DataHelper {
 	}
 	
 	//print out averages per day
-	public static ArrayList<DailyAveragesItem> getAveragePerDay(ArrayList <LogItem> list){
+	public static ArrayList<DailyAveragesItem> getAveragePerDay(ArrayList <LogItem> list, UiLogCallback logCallback){
 		System.out.println("getAveragePerDay");
+		logCallback.log("Starting averages calculation");
 		Calendar newItemTime = Calendar.getInstance();
 		Calendar previouseDayItemTime = Calendar.getInstance();
 		boolean searchForFirstItem = true;
 		Date currentDayDate = null;
 		ArrayList<DailyAveragesItem> dailysList = new ArrayList<DailyAveragesItem>();
 		ArrayList<LogItem> currentDayList = new ArrayList<LogItem>();
-		DbHelper database = new DbHelper();
 		for (LogItem item: list) {
 			//items come in order starting from oldes to newest
 			//find first item which is after Midnight
@@ -60,11 +60,7 @@ public class DataHelper {
 						System.out.println("ERROR: the items counted for the day is less than acceptable: " + numberOfItemsInCalculatedDay);
 					} else {
 						DailyAveragesItem daysAverages = DailyAveragesItem.getAveragesForDay(currentDayList);
-						//System.out.println("Average per day calculated: " + daysAverages.getTemperature() + "From toal of " + daysAverages.getNumberOfItems() + " items");
-						System.out.println(daysAverages.toString());
-						dailysList.add(daysAverages);
-						//database.saveItem(daysAverages);
-						System.out.println();					
+						dailysList.add(daysAverages);			
 					}
 					previouseDayItemTime = (Calendar) newItemTime.clone();
 					currentDayList.clear();
@@ -74,7 +70,8 @@ public class DataHelper {
 				
 			}
 		}
-		database.saveItems(dailysList);
+		logCallback.log("Ending averages calculation");
+		logCallback.log("Created " + dailysList.size() + " dailyLog items");
 		System.out.println("Exiting average calculation");
 		return dailysList;
 	}

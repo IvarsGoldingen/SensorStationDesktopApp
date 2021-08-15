@@ -25,16 +25,9 @@ import ch.qos.logback.classic.Logger;
  * */
 /*
  * TODOs:
- * 1. sava logs to local database
- * 		read data from local database
- * 		Save data from main not DataHelper
- * 		Draw logs from database
- * 2.1 Finish implementing console
+ * 1. Database in new Thread
  * 2. Read data from withings reports
- * 3. Have some kind of status log window
- * 4. Do not exit app when closing graph
- * 		put your ChartPanel in a JFrame
- * 		https://stackoverflow.com/questions/5522575/how-can-i-update-a-jfreecharts-appearance-after-its-been-made-visible
+ * 3. get averages only if necessary
  * */
 public class Main {
 
@@ -47,25 +40,33 @@ public class Main {
 	private static UI ui;
 	// Takes care of getting data from Firebase
 	private static FirebaseHelper firebase;
-	//UI for building graphs
-	static Graph graph2;
 	//List of log data
 	private static ArrayList<LogItem> logs = null;
 	//List of daily data
-	private static ArrayList<DailyAveragesItem> dailyLogs = null;
-
-
+	private static ArrayList<DailyAveragesItem> dailyLogsDb = null;
+	//Database which stores daily averages items
+	private static DbHelper db;
+	
 	public static void main(String[] args) {
 		turnOffLoggers();
 		System.out.println("Sensor station start. Boo Boo is the best");
 		createUI();
+		ui.logLine("Start");
+		//Create callback for logs
+		createLogCallback();
 		//Create callbacks for UI logging
-		createUICallbacks();		
+		createUICallbacks();
+		ui.logLine("Initializing database");
+		//Database
+		db = new DbHelper(logCallback);
+		dailyLogsDb = db.getAllItems();
 		// This object will be populated with data from the stream
 		currentData = new SensorStation();
+		ui.logLine("Connecting to Firebase");
 		connectToFirebase();
 		firebase.startStream();
 		firebase.getLogs();
+		
 	}
 
 	private static void createUI() {
@@ -106,8 +107,8 @@ public class Main {
 			public void openAveragesGraphsButtonPressed() {
 				// TODO Auto-generated method stub
 				System.out.println("openAveragesGraphsButtonPressed()");
-				if (dailyLogs != null) {
-					createDailyItemGraphs(dailyLogs);
+				if (dailyLogsDb != null) {
+					createDailyItemGraphs(dailyLogsDb);
 				} else {
 					JOptionPane.showMessageDialog(null, "Daily logs are not yet downloaded");
 				}
@@ -194,25 +195,32 @@ public class Main {
 				logs = fbLogs;
 				ui.logLine("Received " + logs.size() + " items from Firebase");
 				System.out.println("Received this many logItems:" + logs.size());
-				dailyLogs = DataHelper.getAveragePerDay(logs);
+				//TODO: get averages only if necessary
+				db.saveItems(DataHelper.getAveragePerDay(logs, logCallback));
 			}
 		};
 	}
 	
 	
-	private void createLogCallback() {
+	private static void createLogCallback() {
 		logCallback = new UiLogCallback() {
 			@Override
 			public void log(String text) {
 				ui.logLine(text);
 			}
-			
 		};
 	}
 
 	private static void turnOffLoggers() {
-		Set<String> loggers = new HashSet<>(Arrays.asList("org.apache.http", "groovyx.net.http", "io.netty",
-				"reactor.netty", "org.springframework", "com.launchdarkly.eventsource.EventSource"));
+		Set<String> loggers = new HashSet<>(Arrays.asList(
+				"org.apache.http",
+				"groovyx.net.http", 
+				"io.netty",
+				"reactor.netty", 
+				"org.springframework", 
+				"com.launchdarkly.eventsource.EventSource",
+				"org.hibernate"
+				));
 		for (String log : loggers) {
 			Logger logger = (Logger) LoggerFactory.getLogger(log);
 			logger.setLevel(Level.ERROR);
@@ -221,19 +229,17 @@ public class Main {
 	}
 	
 	private static void createLogItemGraphs(ArrayList<LogItem> logs) {
-		Graph graph = new Graph("Recent data");
+		Graph graph = new Graph("Recent data", logCallback);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM HH:mm");
-		graph.drawGraph((List <Object>)(List<?>)logs, dateFormat, 2);
-		//graph.drawLogItems(logs);
+		graph.drawGraph((List <Object>)(List<?>)logs, dateFormat, 2, true, false);
 		graph.pack( );                
 		graph.setVisible(true); 
 	}
 	
 	private static void createDailyItemGraphs(ArrayList<DailyAveragesItem> logs) {
-		Graph graph = new Graph("Daily averages data");
+		Graph graph = new Graph("Daily averages data", logCallback);
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM");
-		graph.drawGraph((List <Object>)(List<?>)logs, dateFormat, 14);
-		//graph.drawDailyItems(logs);
+		graph.drawGraph((List <Object>)(List<?>)logs, dateFormat, 14, false, true);
 		graph.pack( );                
 		graph.setVisible(true); 
 	}

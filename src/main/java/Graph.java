@@ -84,13 +84,20 @@ public class Graph extends JFrame implements ChangeListener {
 	
 	//How many days will be shown when pressing zoom to end
 	private int zoomToEndDays = 2;
-	
+	//Console log
+	UiLogCallback logCB;
 
-	public Graph(String title) {
+	public Graph(String title, UiLogCallback logCB) {
 		super(title);
+		this.logCB = logCB;
 	}
 
-	public void drawGraph(List <Object> items, SimpleDateFormat dateFormat, int zoomToEndDays){
+	//If smooth lines will be rounded
+	public void drawGraph(List <Object> items, 
+			SimpleDateFormat dateFormat, 
+			int zoomToEndDays, 
+			boolean drawSmooth,
+			boolean showPoints){
 		this.zoomToEndDays = zoomToEndDays;
 		createSeries((List <Object>)(List<?>)items);
 		createDatasets();
@@ -101,7 +108,7 @@ public class Graph extends JFrame implements ChangeListener {
 		plot.setDataset(THOUSANDS_PLOT_INDEX, thousandsDataset);
 		// Set white background
 		plot.setBackgroundPaint(Color.WHITE);
-		formatAxis();
+		formatAxis(drawSmooth, showPoints);
 		setYaxisRanges();
 		formatTimeAxis(dateFormat);
 		// Map the data to the appropriate axis
@@ -171,13 +178,16 @@ public class Graph extends JFrame implements ChangeListener {
 		Object firstItem = items.get(0);
 		int itemType = ITEM_TYPE_UNKNOWN;
 		if (firstItem instanceof DailyAveragesItem) {
+			logCB.log("GRAPH: Drawing averages items");
 			itemType = ITEM_TYPE_DAILY_AVG;
 		} else if(firstItem instanceof LogItem) {
+			logCB.log("GRAPH: Drawing regular items");
 			itemType = ITEM_TYPE_LOG;
 		} else {
-			System.out.println("Error: unknown item");
+			logCB.log("GRAPH: Error: unknown item");
+			System.out.println("GRAPH: Error: unknown item");
 		}
-		
+
 		for (Object item : items) {
 			// Get the last item time so it is known from when to draw the graph
 			long timeOfItem = getItemTime(item, itemType);
@@ -186,6 +196,7 @@ public class Graph extends JFrame implements ChangeListener {
 	}
 	
 	private void addSensorSeriesData(Object item, long timeOfItem) {
+		//System.out.println("Time: " + timeOfItem);
 		SensorData sensorData = (SensorData)item;
 		co2Series.add(timeOfItem, sensorData.getCO2());
 		t1Series.add(timeOfItem, sensorData.getTemperature());
@@ -219,6 +230,8 @@ public class Graph extends JFrame implements ChangeListener {
 			if (timeOfItem < oldestDateReceivedMs) {
 				oldestDateReceivedMs = timeOfItem;
 			}
+		} else {
+			System.out.println("Graph - ERROR: unknown type");
 		}
 		return timeOfItem;
 	}
@@ -246,18 +259,25 @@ public class Graph extends JFrame implements ChangeListener {
 		thousandsDataset.addSeries(pressureSeries);
 	}
 
-	private void formatAxis() {
+	//If smooth lines will be rounded
+	private void formatAxis(boolean drawSmooth, boolean showPoints) {
+		int precission = 0;
+		if (drawSmooth) {
+			precission = 10;
+		} else {
+			precission = 1;
+		}
 		// Format y axis with thousands range
-		thousandsRenderer = new XYSplineRenderer();
+		thousandsRenderer = new XYSplineRenderer(precission);
 		plot.setRenderer(THOUSANDS_PLOT_INDEX, thousandsRenderer);
 		thousandsRenderer.setSeriesPaint(0, Color.BLUE);
 		thousandsRenderer.setSeriesPaint(1, Color.RED);
 		thousandsRenderer.setSeriesPaint(2, Color.GREEN);
 		thousandsRenderer.setSeriesStroke(THOUSANDS_PLOT_INDEX, new BasicStroke(1.0f));
 		plot.setRangeAxis(THOUSANDS_PLOT_INDEX, new NumberAxis("CO2, TVOC, pressure"));
-		thousandsRenderer.setDefaultShapesVisible(false);
+		thousandsRenderer.setDefaultShapesVisible(showPoints);
 		// Format y axis with hundreds range
-		hundredsRenderer = new XYSplineRenderer();
+		hundredsRenderer = new XYSplineRenderer(precission);
 		plot.setRenderer(HUNDREDS_PLOT_INDEX, hundredsRenderer);
 		hundredsRenderer.setSeriesPaint(0, Color.MAGENTA);
 		hundredsRenderer.setSeriesPaint(1, Color.PINK);
@@ -265,7 +285,7 @@ public class Graph extends JFrame implements ChangeListener {
 		// hundredsRenderer.setSeriesFillPaint(HUNDREDS_PLOT_INDEX, Color.RED);
 		hundredsRenderer.setSeriesStroke(HUNDREDS_PLOT_INDEX, new BasicStroke(1.0f));
 		plot.setRangeAxis(HUNDREDS_PLOT_INDEX, new NumberAxis("Temperature, humidity"));
-		hundredsRenderer.setDefaultShapesVisible(false);
+		hundredsRenderer.setDefaultShapesVisible(showPoints);
 	}
 
 	private void setYaxisRanges() {
@@ -394,6 +414,7 @@ public class Graph extends JFrame implements ChangeListener {
 		}
 	}
 	
+	/*
 	public void drawDailyItems(List<DailyAveragesItem> items)
 	{
 		zoomToEndDays = 14;
@@ -480,4 +501,5 @@ public class Graph extends JFrame implements ChangeListener {
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	}
+	*/
 }

@@ -44,7 +44,10 @@ public class UI extends JFrame {
 	
 	//Write data to log area
 	public void logLine(String text) {
-		logArea.append(text + '\n');
+		SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss:SSS");
+		Date date = new Date();
+		String time = dateFormat.format(date);
+		logArea.append(time + "\t" + text + '\n');
 	}
 	
 	//Update ui with data from database

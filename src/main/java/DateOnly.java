@@ -48,7 +48,7 @@ public class DateOnly {
 	
 	public long getEpochMs() {
 		Calendar calendar = Calendar.getInstance();
-		calendar.set(year, month, day);
+		calendar.set(year, (month - 1), day);//-1 because for Calendar Jan is 0
 		return calendar.getTimeInMillis();
 	}
 }
