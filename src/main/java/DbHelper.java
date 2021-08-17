@@ -11,13 +11,19 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 //DataBase Helper
-public class DbHelper {
+public class DbHelper implements Runnable {
 	Session session;
 	Transaction transaction;
 	UiLogCallback logCB;
+	@Override
+	
+	public void run() {
+		// TODO Auto-generated method stub
+		init();
+	}
+	
 	
 	public DbHelper(UiLogCallback logCB) {
-		init();
 		this.logCB = logCB;
 	}
 	
@@ -85,5 +91,7 @@ public class DbHelper {
 			logCB.log("Error initializing DB");
 		}
 	}
+
+	
 	
 }

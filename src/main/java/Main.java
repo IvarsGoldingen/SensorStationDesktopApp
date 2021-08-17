@@ -59,6 +59,9 @@ public class Main {
 		ui.logLine("Initializing database");
 		//Database
 		db = new DbHelper(logCallback);
+		Thread t1 = new Thread (db);
+		t1.start();
+		//TODO: get data with callback
 		dailyLogsDb = db.getAllItems();
 		// This object will be populated with data from the stream
 		currentData = new SensorStation();
