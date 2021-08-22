@@ -72,7 +72,7 @@ public class UI extends JFrame {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		this.setBounds(100, 100, 1035, 721);
+		this.setBounds(100, 100, 1035, 788);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.getContentPane().setLayout(null);
 		
@@ -185,12 +185,24 @@ public class UI extends JFrame {
 		btnDrawAveragesGraph.setBounds(71, 623, 295, 59);
 		getContentPane().add(btnDrawAveragesGraph);
 		
+		JButton btnDrawNightGraphs = new JButton("DRAW NIGHT GRAPHS");
+		btnDrawNightGraphs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				callbackToMain.openNightGraphButtonPressed();
+			}
+		});
+		btnDrawNightGraphs.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btnDrawNightGraphs.setBounds(71, 692, 295, 59);
+		getContentPane().add(btnDrawNightGraphs);
+		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(457, 0, 564, 682);
 		getContentPane().add(scrollPane);
 		
 		logArea = new JTextArea();
 		scrollPane.setViewportView(logArea);
+		
+		
 	}
 	
 	public void setJFrameVisible(boolean visible) {

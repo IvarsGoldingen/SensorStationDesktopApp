@@ -12,9 +12,13 @@ import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 //DataBase Helper
 public class DbHelper implements Runnable {
-	Session session;
-	Transaction transaction;
-	UiLogCallback logCB;
+	private Session session;
+	private Transaction transaction;
+	private UiLogCallback logCB;
+	private DBCallbacks dbCb;
+	
+	private boolean initialised = false;
+	
 	@Override
 	
 	public void run() {
@@ -23,8 +27,9 @@ public class DbHelper implements Runnable {
 	}
 	
 	
-	public DbHelper(UiLogCallback logCB) {
+	public DbHelper(UiLogCallback logCB, DBCallbacks dbCb) {
 		this.logCB = logCB;
+		this.dbCb = dbCb;
 	}
 	
 	private void commitDb() {
@@ -56,16 +61,18 @@ public class DbHelper implements Runnable {
 	//Save multiple items
 	public void saveItems(List <DailyAveragesItem> items) {
 		logCB.log("Attemting to save items to DB");
-		int itemCntr = 1;
+		int dublicateCntr = 0;
+		int savedCntr = 0;
 		for (DailyAveragesItem item: items) {
 			if (!isItemDublicate(item.getDaily_item_id())) {
 				session.save(item);
-				logCB.log("Saving item " + itemCntr);
+				savedCntr++;
 			} else {
-				logCB.log("Dublicate not saving " + itemCntr);
+				dublicateCntr++;
 			}
-			itemCntr++;
+			
 		}
+		logCB.log("Saved " + savedCntr + " items. " +  dublicateCntr + " dublicates.");
 		commitDb();
 	}
 	
@@ -80,16 +87,43 @@ public class DbHelper implements Runnable {
 		return items;
 	}
 	
+	public void returnAllItems() {
+		ArrayList <DailyAveragesItem> items = getAllItems(DailyAveragesItem.class);
+		dbCb.returnDailyAvaragesList(items);
+	}
+	
+	public <T> ArrayList<T> getAllItems(Class<T> clazz) {
+		logCB.log("Getting items from DB");
+		CriteriaBuilder builder = session.getCriteriaBuilder();
+		CriteriaQuery<T> criteria = builder.createQuery(clazz);
+		criteria.from(clazz);
+		ArrayList <T> items = (ArrayList<T>) session.createQuery(criteria).getResultList();
+		logCB.log("Got " + items.size() + " items from DB");
+		commitDb();
+		return items;
+	}
+	
 	private void init() {
-		Configuration hibernateConf = new Configuration().configure().addAnnotatedClass(DailyAveragesItem.class);
+		logCB.log("Initializing database");
+		Configuration hibernateConf = new Configuration().configure()
+				.addAnnotatedClass(DailyAveragesItem.class)
+				.addAnnotatedClass(NightAveragesItem.class);
 		try {
 			SessionFactory sFactory = hibernateConf.buildSessionFactory();
 			session = sFactory.openSession();
 			transaction = session.beginTransaction();
+			initialised = true;
 		} catch (Exception e) {
 			System.out.println(e);
 			logCB.log("Error initializing DB");
+			initialised = false;
 		}
+		logCB.log("Database initialization ended");
+		returnAllItems();
+	}
+	
+	public boolean isInitialized() {
+		return initialised;
 	}
 
 	

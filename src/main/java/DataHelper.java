@@ -25,7 +25,6 @@ public class DataHelper {
 		Calendar newItemTime = Calendar.getInstance();
 		Calendar previouseDayItemTime = Calendar.getInstance();
 		boolean searchForFirstItem = true;
-		Date currentDayDate = null;
 		ArrayList<DailyAveragesItem> dailysList = new ArrayList<DailyAveragesItem>();
 		ArrayList<LogItem> currentDayList = new ArrayList<LogItem>();
 		for (LogItem item: list) {

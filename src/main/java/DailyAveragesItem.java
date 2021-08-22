@@ -58,9 +58,7 @@ public class DailyAveragesItem extends SensorData {
 		long timeOfItem = list.get(0).getTime();
 		Calendar calendarTimeOfitem = Calendar.getInstance();
 		calendarTimeOfitem.setTimeInMillis(timeOfItem);
-		DateOnly itemDate = new DateOnly(calendarTimeOfitem.get(Calendar.DAY_OF_MONTH), 
-				calendarTimeOfitem.get(Calendar.MONTH) + 1, // January is 0
-				calendarTimeOfitem.get(Calendar.YEAR));
+		DateOnly itemDate = new DateOnly(calendarTimeOfitem);
 		return new DailyAveragesItem(humidityAverage, temperatureAverage, (int) co2Average, (int) tvocAverage,
 				temperature2Average, pressureAverage,
 				itemDate,

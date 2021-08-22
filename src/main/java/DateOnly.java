@@ -15,6 +15,12 @@ public class DateOnly {
 		this.month = month;
 		this.year = year;
 	}
+	public DateOnly (Calendar cal) {
+		this.day = cal.get(Calendar.DAY_OF_MONTH); 
+		this.month = cal.get(Calendar.MONTH) + 1; // January is 0 in calendar
+		this.year = cal.get(Calendar.YEAR);
+	}
+	
 	
 	public DateOnly() {
 		// TODO Auto-generated constructor stub
@@ -50,5 +56,11 @@ public class DateOnly {
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(year, (month - 1), day);//-1 because for Calendar Jan is 0
 		return calendar.getTimeInMillis();
+	}
+	
+	public static DateOnly getDateOnlyFromCal(Calendar cal) {
+		return new DateOnly(cal.get(Calendar.DAY_OF_MONTH), 
+				cal.get(Calendar.MONTH) + 1, // January is 0
+				cal.get(Calendar.YEAR));
 	}
 }

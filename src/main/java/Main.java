@@ -25,15 +25,20 @@ import ch.qos.logback.classic.Logger;
  * */
 /*
  * TODOs:
- * 1. Database in new Thread
+ * 
  * 2. Read data from withings reports
- * 3. get averages only if necessary
+ * 2.1 Save in DB
+ * 3. New Graph and DB etc for nightly averages. ompare these with withings data
+ * 4. get averages only if necessary
+ * 
  * */
 public class Main {
 
 	private static CurrentDataCallback fireBaseCallbacks;
 	private static UiLogCallback logCallback;
 	private static UICallbacks btnsCallback;
+	//Database callback
+	private static DBCallbacks dbCb;
 	// Current sensor data
 	private static SensorStation currentData;
 	// UI class
@@ -43,7 +48,7 @@ public class Main {
 	//List of log data
 	private static ArrayList<LogItem> logs = null;
 	//List of daily data
-	private static ArrayList<DailyAveragesItem> dailyLogsDb = null;
+	private static ArrayList<DailyAveragesItem> dailyLogs = null;
 	//Database which stores daily averages items
 	private static DbHelper db;
 	
@@ -56,20 +61,31 @@ public class Main {
 		createLogCallback();
 		//Create callbacks for UI logging
 		createUICallbacks();
-		ui.logLine("Initializing database");
+		//Create callback for database
+		createDbCb();
 		//Database
-		db = new DbHelper(logCallback);
+		db = new DbHelper(logCallback, dbCb);
+		
 		Thread t1 = new Thread (db);
 		t1.start();
 		//TODO: get data with callback
-		dailyLogsDb = db.getAllItems();
+		//dailyLogs = db.getAllItems();
 		// This object will be populated with data from the stream
 		currentData = new SensorStation();
 		ui.logLine("Connecting to Firebase");
 		connectToFirebase();
 		firebase.startStream();
 		firebase.getLogs();
-		
+	}
+	
+	//get This data when DB finishes loading
+	private static void createDbCb() {
+		dbCb = new DBCallbacks() {
+			@Override
+			public void returnDailyAvaragesList(ArrayList <DailyAveragesItem> list) {
+				dailyLogs = list;
+			}
+		};
 	}
 
 	private static void createUI() {
@@ -110,13 +126,52 @@ public class Main {
 			public void openAveragesGraphsButtonPressed() {
 				// TODO Auto-generated method stub
 				System.out.println("openAveragesGraphsButtonPressed()");
-				if (dailyLogsDb != null) {
-					createDailyItemGraphs(dailyLogsDb);
+				if (dailyLogs != null) {
+					createDailyItemGraphs(dailyLogs);
 				} else {
 					JOptionPane.showMessageDialog(null, "Daily logs are not yet downloaded");
 				}
 			}
+
+			@Override
+			public void openNightGraphButtonPressed() {
+				// TODO Auto-generated method stub
+				System.out.println("openNightGraphButtonPressed()");
+				if (db.isInitialized()) {
+					drawNightGraph();
+				} else {
+					JOptionPane.showMessageDialog(null, "DB not yet initialized");
+				}
+				
+			}
 		};
+	}
+	
+	private static void drawNightGraph() {
+		/*
+		 * 1. Check how many night items currently in memory. Get item with latest date.
+		 * 2. If latest date is today then just draw
+		 * 3. If not copy all data from averages items to a new list of night items
+		 * 4. Add data from withings reports to finish the data
+		 * 5. When tested instead of copying averages data calculate new ones for night
+		 * */
+		ArrayList<NightAveragesItem> list = db.getAllItems(NightAveragesItem.class);
+		if (list == null) {
+			System.out.println("List is null");
+		} else {
+			int listSize = list.size();
+			if (listSize ==0) {
+				//get list of items from withings file
+				WithingsReportReader reader = new WithingsReportReader();
+				ArrayList <SleepQualityRecord> qualityList = reader.getWithingsData(); 
+				for (SleepQualityRecord rec: qualityList) {
+					System.out.println(rec);
+				}
+			} else {
+				System.out.println("List size: " + list.size());
+			}
+			
+		}
 	}
 	
 	
