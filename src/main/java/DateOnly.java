@@ -63,4 +63,18 @@ public class DateOnly {
 				cal.get(Calendar.MONTH) + 1, // January is 0
 				cal.get(Calendar.YEAR));
 	}
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof DateOnly) {
+			DateOnly ob = (DateOnly)obj;
+			if (this.day == ob.getDay() &&
+					this.month == ob.getMonth() &&
+					this.year == ob.getYear()) {
+				return true;
+			}
+		} 
+		return false;
+	}
+	
+	
 }

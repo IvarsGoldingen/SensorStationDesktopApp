@@ -10,6 +10,25 @@ public class NightAveragesItem extends DailyAveragesItem {
 	//Heart rate
 	private int averageHR = 0;
 	
+	
+	
+	public NightAveragesItem() {
+		super();
+	}
+
+	public NightAveragesItem(DailyAveragesItem dailyItem, double sleepQuality, int averageHR) {
+		super(dailyItem.getHumidity(),
+				dailyItem.getTemperature(),
+				dailyItem.getCO2(),
+				dailyItem.getTVOC(),
+				dailyItem.getTemperature2(),
+				dailyItem.getPressure(),
+				dailyItem.getDate(),
+				dailyItem.getNumberOfItems());
+		this.sleepQuality = sleepQuality;
+		this.averageHR = averageHR;
+	}
+
 	public double getSleepQuality() {
 		return sleepQuality;
 	}
@@ -25,4 +44,13 @@ public class NightAveragesItem extends DailyAveragesItem {
 	public void setAverageHR(int averageHR) {
 		this.averageHR = averageHR;
 	}
+
+	@Override
+	public String toString() {
+		String s = super.toString();
+		return s + "\n" + 
+				"SleepQuality: " + sleepQuality + "\nAverage HR: " + averageHR;
+	}
+	
+	
 }

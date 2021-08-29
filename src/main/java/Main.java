@@ -51,6 +51,8 @@ public class Main {
 	private static ArrayList<DailyAveragesItem> dailyLogs = null;
 	//Database which stores daily averages items
 	private static DbHelper db;
+	//list of items from withings report
+	private static ArrayList <SleepQualityRecord> qualityList;
 	
 	public static void main(String[] args) {
 		turnOffLoggers();
@@ -149,29 +151,94 @@ public class Main {
 	
 	private static void drawNightGraph() {
 		/*
-		 * 1. Check how many night items currently in memory. Get item with latest date.
+		 * 1. Check how many night items currently in DB. Get item with latest date.
 		 * 2. If latest date is today then just draw
-		 * 3. If not copy all data from averages items to a new list of night items
+		 * 3. If not add latest data to night items
 		 * 4. Add data from withings reports to finish the data
 		 * 5. When tested instead of copying averages data calculate new ones for night
 		 * */
 		ArrayList<NightAveragesItem> list = db.getAllItems(NightAveragesItem.class);
 		if (list == null) {
+			createNightItemDB();
 			System.out.println("List is null");
 		} else {
 			int listSize = list.size();
-			if (listSize ==0) {
-				//get list of items from withings file
-				WithingsReportReader reader = new WithingsReportReader();
-				ArrayList <SleepQualityRecord> qualityList = reader.getWithingsData(); 
-				for (SleepQualityRecord rec: qualityList) {
-					System.out.println(rec);
-				}
+			if (listSize == 0) {
+				createNightItemDB();
+				
 			} else {
 				System.out.println("List size: " + list.size());
 			}
 			
 		}
+	}
+	
+	private static void createNightItemDB() {
+		ArrayList <NightAveragesItem> nightItems = new ArrayList<NightAveragesItem>();
+		
+		createQualityListFromReport();
+		//getFirstDailyItem
+		DailyAveragesItem firstItem = dailyLogs.get(0);
+		//get id of appropriate withings item
+		DateOnly firstItemDate = firstItem.getDate();
+		int idOfFirstReportItem = findFirstSleepRecord(firstItemDate);
+		int reportsCounter = idOfFirstReportItem;
+		int sizeOfQualityList = qualityList.size();
+		for (DailyAveragesItem dailyItem: dailyLogs) {
+			//for each daily item create a night item
+			DateOnly timeOfDailyItem = dailyItem.getDate();
+			int innerCntr = reportsCounter;
+			while (true) {
+				SleepQualityRecord sameDayQualityRe = qualityList.get(innerCntr);
+				if (timeOfDailyItem.equals(sameDayQualityRe.getDate())) {
+					NightAveragesItem itemToAdd = new NightAveragesItem(dailyItem,
+							sameDayQualityRe.getSleepQuality(),
+							sameDayQualityRe.getAverageHR());
+					nightItems.add(itemToAdd);
+					break;
+				}
+				innerCntr++;
+				if (innerCntr >= sizeOfQualityList) {
+					System.out.println("Unable to find night data on " + timeOfDailyItem);
+					break;
+				}
+			}
+			reportsCounter++;
+		}
+		
+		
+		
+		for (NightAveragesItem item: nightItems) {
+			System.out.println(item);
+			System.out.println("______________________________________________");
+		}
+		
+		System.out.println("Number of daily items: " + dailyLogs.size());
+		System.out.println("Number of night items: " + nightItems.size());
+	}
+	
+	
+	
+	//get list of items from withings file
+	private static void createQualityListFromReport() {
+		WithingsReportReader reader = new WithingsReportReader();
+		qualityList = reader.getWithingsData(); 
+		for (SleepQualityRecord rec: qualityList) {
+			System.out.println(rec);
+		}
+	}
+	
+	private static int findFirstSleepRecord(DateOnly itemTime) {
+		for (int i =0; i < qualityList.size(); i++) {
+			SleepQualityRecord sleepRecord = qualityList.get(i);
+			if (sleepRecord != null) {
+				DateOnly recordTime = sleepRecord.getDate();
+				if (recordTime.equals(itemTime)) {
+					return i;
+				}
+			}
+		}		
+		return -1;
 	}
 	
 	

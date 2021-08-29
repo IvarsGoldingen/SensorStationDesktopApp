@@ -18,8 +18,14 @@ public class DailyAveragesItem extends SensorData {
 		//Default constructor for Hybernate
 	}
 	
-	public DailyAveragesItem(double humidity, double temperature, int CO2, int TVOC, double temperature2,
-			double pressure, DateOnly date, int numberOfItems) {
+	public DailyAveragesItem(double humidity, 
+			double temperature, 
+			int CO2, 
+			int TVOC, 
+			double temperature2,
+			double pressure, 
+			DateOnly date, 
+			int numberOfItems) {
 		super(humidity, temperature, CO2, TVOC, temperature2, pressure);
 		this.date = date;
 		this.numberOfItems = numberOfItems;
