@@ -175,7 +175,6 @@ public class Main {
 	
 	private static void createNightItemDB() {
 		ArrayList <NightAveragesItem> nightItems = new ArrayList<NightAveragesItem>();
-		
 		createQualityListFromReport();
 		//getFirstDailyItem
 		DailyAveragesItem firstItem = dailyLogs.get(0);
@@ -206,15 +205,15 @@ public class Main {
 			reportsCounter++;
 		}
 		
-		
-		
-		for (NightAveragesItem item: nightItems) {
+		for (NightAveragesItem item: nightItems) { 
 			System.out.println(item);
 			System.out.println("______________________________________________");
 		}
 		
 		System.out.println("Number of daily items: " + dailyLogs.size());
 		System.out.println("Number of night items: " + nightItems.size());
+		db.saveItem(nightItems.get(0));
+		//db.saveItems(NightAveragesItem.class, nightItems);
 	}
 	
 	

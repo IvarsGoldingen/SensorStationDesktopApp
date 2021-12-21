@@ -27,6 +27,7 @@ public class NightAveragesItem extends DailyAveragesItem {
 				dailyItem.getNumberOfItems());
 		this.sleepQuality = sleepQuality;
 		this.averageHR = averageHR;
+		this.daily_item_id = this.daily_item_id + 100000000;
 	}
 
 	public double getSleepQuality() {

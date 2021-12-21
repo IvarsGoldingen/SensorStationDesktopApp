@@ -19,6 +19,10 @@ public class DbHelper implements Runnable {
 	
 	private boolean initialised = false;
 	
+	private static final int TYPE_NIGHT = 0;
+	private static final int TYPE_DAY = 1;
+	private static final int TYPE_AVG = 2;
+	
 	@Override
 	
 	public void run() {
@@ -34,12 +38,28 @@ public class DbHelper implements Runnable {
 	
 	private void commitDb() {
 		if (transaction.getStatus().equals(TransactionStatus.ACTIVE)) {
+			System.out.println("Comit ok");
+			transaction.commit();
+		} else {
+			System.out.println("Failed to comit");
 			transaction.commit();
 		}
 	}
 	
-	private boolean isItemDublicate(int itemID) {
-		DailyAveragesItem onlineDbItem = (DailyAveragesItem)session.get(DailyAveragesItem.class, itemID);
+	private boolean isItemDublicate(int itemID, int itemType) {
+		Object onlineDbItem = null;
+		switch (itemType) {
+		case TYPE_NIGHT:
+			onlineDbItem = (NightAveragesItem)session.get(NightAveragesItem.class, itemID);
+			break;
+		case TYPE_DAY:
+			break;
+		case TYPE_AVG:
+			onlineDbItem = (DailyAveragesItem)session.get(DailyAveragesItem.class, itemID);
+			break;
+		default:
+			break;
+		}
 		if (onlineDbItem == null) {
 			return false;
 		} else {
@@ -50,21 +70,32 @@ public class DbHelper implements Runnable {
 	//Save signle daily item
 	public void saveItem(DailyAveragesItem item) {
 		//check if item dublicate
-		if (!isItemDublicate(item.getDaily_item_id())) {
+		if (!isItemDublicate(item.getDaily_item_id(), TYPE_AVG)) {
 			session.save(item);
 			commitDb();
 		} else {
-			System.out.println("Dublicate item not addig to DB");
+			System.out.println("Dublicate DAY item not addig to DB");
+		}
+	}
+	
+	public void saveItem(NightAveragesItem item) {
+		//check if item dublicate
+		if (!isItemDublicate(item.getDaily_item_id(), TYPE_NIGHT)) {
+			System.out.println("Unique NIGHT item adding to DB");
+			session.save(item);
+			commitDb();
+		} else {
+			System.out.println("Dublicate NIGHT item not addig to DB");
 		}
 	}
 	
 	//Save multiple items
 	public void saveItems(List <DailyAveragesItem> items) {
-		logCB.log("Attemting to save items to DB");
+		logCB.log("Attemting to save DailyAveragesItems to DB");
 		int dublicateCntr = 0;
 		int savedCntr = 0;
 		for (DailyAveragesItem item: items) {
-			if (!isItemDublicate(item.getDaily_item_id())) {
+			if (!isItemDublicate(item.getDaily_item_id(), TYPE_AVG)) {
 				session.save(item);
 				savedCntr++;
 			} else {
@@ -74,6 +105,55 @@ public class DbHelper implements Runnable {
 		}
 		logCB.log("Saved " + savedCntr + " items. " +  dublicateCntr + " dublicates.");
 		commitDb();
+	}
+	
+	public <T> void saveItems(Class<T> clazz, ArrayList<T> list) {
+		logCB.log("Attemting to save unknown type of item to DB");
+		int dublicateCntr = 0;
+		int savedCntr = 0;
+		T firstItem = list.get(0);
+		int itemType = -1;
+		if (firstItem instanceof NightAveragesItem) {
+			itemType = TYPE_NIGHT;
+		}
+		switch (itemType) {
+			case TYPE_NIGHT:
+				ArrayList <NightAveragesItem> nightItems = new ArrayList<>();
+				nightItems = (ArrayList<NightAveragesItem>)list;
+//				for (NightAveragesItem nightItem: nightItems) {
+//					if (!isItemDublicate(nightItem.getDaily_item_id(), TYPE_NIGHT)) {
+//						session.saveOrUpdate("Sensor_station_nightly", nightItem);
+//						savedCntr++;
+//						break;
+//					} else {
+//						dublicateCntr++;
+//					}
+//				}
+				System.out.println(nightItems.get(3));
+				session.save(nightItems.get(3));
+				break;
+			case TYPE_DAY:
+				
+				break;
+			case TYPE_AVG:
+				
+				break;
+			default:
+				break;
+		}
+		logCB.log("Saved " + savedCntr + " items. " +  dublicateCntr + " dublicates.");
+		commitDb();
+	}
+	
+	public <T> ArrayList<T> getAllItems(Class<T> clazz) {
+		logCB.log("Getting items from DB");
+		CriteriaBuilder builder = session.getCriteriaBuilder();
+		CriteriaQuery<T> criteria = builder.createQuery(clazz);
+		criteria.from(clazz);
+		ArrayList <T> items = (ArrayList<T>) session.createQuery(criteria).getResultList();
+		logCB.log("Got " + items.size() + " items from DB");
+		commitDb();
+		return items;
 	}
 	
 	public ArrayList <DailyAveragesItem> getAllItems(){
@@ -92,16 +172,7 @@ public class DbHelper implements Runnable {
 		dbCb.returnDailyAvaragesList(items);
 	}
 	
-	public <T> ArrayList<T> getAllItems(Class<T> clazz) {
-		logCB.log("Getting items from DB");
-		CriteriaBuilder builder = session.getCriteriaBuilder();
-		CriteriaQuery<T> criteria = builder.createQuery(clazz);
-		criteria.from(clazz);
-		ArrayList <T> items = (ArrayList<T>) session.createQuery(criteria).getResultList();
-		logCB.log("Got " + items.size() + " items from DB");
-		commitDb();
-		return items;
-	}
+	
 	
 	private void init() {
 		logCB.log("Initializing database");

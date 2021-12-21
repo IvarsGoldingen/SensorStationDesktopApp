@@ -3,13 +3,17 @@ import java.util.Calendar;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.MappedSuperclass;
 
 //Object that contains averages of different data per day
 @Entity(name="Sensor_station")
+@Inheritance(strategy=InheritanceType.TABLE_PER_CLASS)
 public class DailyAveragesItem extends SensorData {
 	
 	@Id
-	private int daily_item_id = -1;
+	protected int daily_item_id = -1;
 	private DateOnly date = null;
 	// Number of items from whhihc the average was calculated
 	private int numberOfItems = 0;
